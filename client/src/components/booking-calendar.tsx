@@ -12,18 +12,25 @@ const TIME_SLOTS = Array.from({ length: 20 }, (_, i) => {
   return `${hour.toString().padStart(2, "0")}:${minute}`;
 });
 
+const LOCATIONS = [
+  { id: "mumbai", name: "Mumbai - Andheri West" },
+  { id: "bangalore", name: "Bangalore - Indiranagar" },
+  { id: "delhi", name: "Delhi - Connaught Place" },
+];
+
 export function BookingCalendar() {
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState<string>();
   const [players, setPlayers] = useState<string>("2");
+  const [location, setLocation] = useState<string>();
   const { toast } = useToast();
 
   const handleBook = () => {
-    if (!date || !timeSlot) {
+    if (!date || !timeSlot || !location) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please select a date and time",
+        description: "Please select a date, time, and location",
       });
       return;
     }
@@ -56,6 +63,22 @@ export function BookingCalendar() {
           <CardTitle>Book Your Session</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Location</label>
+            <Select value={location} onValueChange={setLocation}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent>
+                {LOCATIONS.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Time Slot</label>
             <Select value={timeSlot} onValueChange={setTimeSlot}>
