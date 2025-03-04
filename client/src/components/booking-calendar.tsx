@@ -40,14 +40,6 @@ const TIME_SLOTS = [
   "07:30 PM - 08:30 PM",
 ];
 
-const LOCATIONS = [
-  { id: "malad", name: "Malad West" },
-  { id: "andheri", name: "Andheri East" },
-  { id: "bandra", name: "Bandra West" },
-  { id: "thane", name: "Thane" },
-  { id: "powai", name: "Powai" },
-];
-
 export function BookingCalendar() {
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState<string>();
@@ -59,17 +51,6 @@ export function BookingCalendar() {
 
   const { data: games } = useQuery<Game[]>({
     queryKey: ["/api/games"],
-    queryFn: async () => {
-      const response = await fetch('/api/games', {
-        headers: {
-          'X-Username': localStorage.getItem('username') || ''
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch games');
-      }
-      return response.json();
-    }
   });
 
   const handleBook = async () => {
@@ -87,24 +68,9 @@ export function BookingCalendar() {
     try {
       // Here we would make the booking API call
       const bookingDateTime = new Date(date);
-      // Check if timeSlot is properly formatted
-      if (!timeSlot) {
-        throw new Error("Time slot is required");
-      }
-      
-      // Parse time from the format "09:00 AM - 10:00 AM" to get hours and minutes
-      const timeSlotStart = timeSlot.split(' - ')[0]; // "09:00 AM"
-      const [timeComponent, ampm] = timeSlotStart.split(' '); // ["09:00", "AM"]
-      const [hours, minutes] = timeComponent.split(':'); // ["09", "00"]
-      
-      // Calculate hours in 24-hour format
-      let hoursValue = parseInt(hours);
-      if (ampm === 'PM' && hoursValue !== 12) {
-        hoursValue += 12;
-      } else if (ampm === 'AM' && hoursValue === 12) {
-        hoursValue = 0;
-      }
-      
+      const [hours, minutes] = timeSlot.split(':')[0].split(' ')[0].split(':');
+      const isPM = timeSlot.includes('PM') && hours !== '12';
+      const hoursValue = isPM ? parseInt(hours) + 12 : parseInt(hours);
       bookingDateTime.setHours(hoursValue, parseInt(minutes));
       
       const bookingData = {
@@ -114,45 +80,27 @@ export function BookingCalendar() {
         teamSize: parseInt(players),
         totalAmount: parseInt(players) * 500, // Basic pricing
         isPaid: false,
-        location: location,
+        location: LOCATIONS.find(loc => loc.id === location)?.name || location,
         status: 'pending'
       };
 
-      console.log("Sending booking data:", bookingData);
-
-      const response = await fetch('/api/bookings', {
+      await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Username': localStorage.getItem('username') || '' // Add username from localStorage if available
         },
         body: JSON.stringify(bookingData),
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create booking");
-      }
-      
-      const result = await response.json();
-      console.log("Booking created:", result);
 
       toast({
         title: "Success",
         description: "Your booking has been confirmed!",
       });
-      
-      // Redirect to profile page after successful booking
-      setTimeout(() => {
-        window.location.href = '/profile';
-      }, 2000);
-      
     } catch (error) {
-      console.error("Booking error:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to complete booking. Please try again.",
+        description: "Failed to complete booking. Please try again.",
       });
     } finally {
       setIsBooking(false);
@@ -207,22 +155,6 @@ export function BookingCalendar() {
                 </Select>
               </div>
             
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LOCATIONS.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>
-                        {loc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-medium">Time Slot</label>
                 <Select value={timeSlot} onValueChange={setTimeSlot}>
