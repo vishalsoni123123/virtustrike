@@ -1,7 +1,9 @@
 
-const fs = require('fs');
-const path = require('path');
-const { exec } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { exec } from 'child_process';
+import mysql from 'mysql2';
+import config from './config.js';
 
 // Create necessary directories
 const ensureDir = (dirPath) => {
@@ -13,9 +15,6 @@ const ensureDir = (dirPath) => {
 
 // Check MySQL connection
 const checkMySQLConnection = () => {
-  const mysql = require('mysql2');
-  const config = require('./config');
-  
   const connection = mysql.createConnection({
     host: config.database.mysql.host,
     user: config.database.mysql.user,
@@ -63,10 +62,10 @@ const setup = () => {
   console.log('🚀 Setting up project...');
   
   // Ensure directories exist
-  ensureDir(path.join(__dirname, 'dist'));
+  ensureDir(path.join(process.cwd(), 'dist'));
   
   // Install dependencies if needed
-  if (!fs.existsSync(path.join(__dirname, 'node_modules'))) {
+  if (!fs.existsSync(path.join(process.cwd(), 'node_modules'))) {
     console.log('📦 Installing dependencies...');
     exec('npm install', (error, stdout, stderr) => {
       if (error) {

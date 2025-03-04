@@ -7,9 +7,9 @@ export default function Home() {
     <div className="space-y-12">
       <section className="relative overflow-hidden rounded-lg px-6 py-24 text-center lg:px-8">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url(/attached_assets/game1.jpg)",
+            backgroundImage: "url(attached_assets/game1.jpg)",
             filter: "brightness(0.3)",
           }}
         />
@@ -64,7 +64,7 @@ export default function Home() {
           </div>
           <div className="relative aspect-video rounded-lg overflow-hidden">
             <img
-              src="/attached_assets/game2.jpg"
+              src="attached_assets/game2.jpg"
               alt="VR Gaming Experience"
               className="object-cover w-full h-full"
             />
