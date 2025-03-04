@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import Games from "@/pages/games";
 import Booking from "@/pages/booking";
 import Auth from "@/pages/auth";
+import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/games" component={Games} />
       <Route path="/booking" component={Booking} />
       <Route path="/auth" component={Auth} />
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );
