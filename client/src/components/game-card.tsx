@@ -2,13 +2,28 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import type { Game } from "@shared/schema";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { User } from "@shared/schema";
 
 interface GameCardProps {
   game: Game;
 }
 
 export function GameCard({ game }: GameCardProps) {
+  const [, setLocation] = useLocation();
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user/profile"],
+  });
+
+  const handleBookClick = () => {
+    if (!user) {
+      setLocation("/auth");
+    } else {
+      setLocation("/booking");
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <div className="aspect-video w-full overflow-hidden">
@@ -29,9 +44,9 @@ export function GameCard({ game }: GameCardProps) {
         </div>
       </CardContent>
       <CardFooter>
-        <Link href="/booking">
-          <Button className="w-full">Book Now</Button>
-        </Link>
+        <Button className="w-full" onClick={handleBookClick}>
+          Book Now
+        </Button>
       </CardFooter>
     </Card>
   );
