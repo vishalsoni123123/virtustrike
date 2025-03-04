@@ -1,6 +1,30 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
+import { MySQLStorage } from "./mysql-storage";
+import path from "path";
+
+// Determine if using MySQL or in-memory storage
+const useMySQL = process.env.USE_MYSQL === "true";
+
+if (useMySQL) {
+  const mysqlStorage = new MySQLStorage({
+    host: process.env.MYSQL_HOST || 'localhost',
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'game_booking',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+  
+  // Initialize MySQL tables
+  mysqlStorage.initialize().catch(console.error);
+  
+  // Replace in-memory storage with MySQL implementation
+  Object.assign(storage, mysqlStorage);
+}
 
 const app = express();
 app.use(express.json());
