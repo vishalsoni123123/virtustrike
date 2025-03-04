@@ -17,9 +17,10 @@ export default function Profile() {
   const [, setLocation] = useLocation();
   const { user, isLoading } = useAuth();
   
-  const { data: bookings } = useQuery<Booking[]>({
+  const { data: bookings, isLoading: isLoadingBookings } = useQuery<Booking[]>({
     queryKey: ["/api/user/bookings"],
     enabled: !!user,
+    retry: 3,
   });
 
   useEffect(() => {
@@ -30,11 +31,11 @@ export default function Profile() {
   }, [user, isLoading, setLocation]);
 
   if (isLoading) {
-    return <div className="text-center">Loading...</div>;
+    return <div className="text-center p-8">Loading user profile...</div>;
   }
 
   if (!user) {
-    return null; // Will redirect in useEffect
+    return <div className="text-center p-8">User not found. Redirecting to login...</div>; // Will redirect in useEffect
   }
 
   return (
@@ -75,7 +76,9 @@ export default function Profile() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {!bookings || bookings.length === 0 ? (
+              {isLoadingBookings ? (
+                <p className="text-muted-foreground">Loading bookings...</p>
+              ) : !bookings || bookings.length === 0 ? (
                 <p className="text-muted-foreground">No bookings yet</p>
               ) : (
                 bookings.map((booking) => (
@@ -87,7 +90,7 @@ export default function Profile() {
                           {format(new Date(booking.date), "PPP p")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Location: {booking.location}
+                          Game ID: {booking.gameId}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Team Size: {booking.teamSize} players

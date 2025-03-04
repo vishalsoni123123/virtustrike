@@ -77,19 +77,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       user = await storage.getUserByUsername(username);
     } else {
       // Fallback to userId 1 for testing purposes
-      user = await storage.getUserProfile(1);
+      user = await storage.getUser(1);
     }
     
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    res.json(user);
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
   });
 
   app.get("/api/user/bookings", async (req, res) => {
-    // This would normally check the session
-    const userId = 1; // Temporary, should come from session
+    // Extract username from headers if available
+    const username = req.headers['x-username'] as string;
+    
+    let userId = 1; // Default for testing
+    
+    if (username) {
+      const user = await storage.getUserByUsername(username);
+      if (user) {
+        userId = user.id;
+      }
+    }
+    
     const bookings = await storage.getUserBookings(userId);
     res.json(bookings);
   });
