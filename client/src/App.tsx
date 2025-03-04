@@ -9,6 +9,7 @@ import Booking from "./pages/booking";
 import Profile from "./pages/profile";
 import Auth from "./pages/auth";
 import { AuthProvider } from "./contexts/auth-context";
+import Footer from "./components/footer"; //Import Footer component
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,9 +46,7 @@ export default function App() {
               <Route path="/profile" component={Profile} />
             </Switch>
           </main>
-          <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} VirtuStrike. All rights reserved.
-          </footer>
+          <Footer /> {/* Added Footer component */}
         </div>
       </AuthProvider>
     </QueryClientProvider>
