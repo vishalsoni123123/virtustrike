@@ -27,16 +27,21 @@ const sendBookingConfirmationEmail = async (booking: any, userEmail: string) => 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/games", async (_req, res) => {
     const games = await storage.getGames();
-    res.json(games);
+    return res.json(games);
   });
 
   app.get("/api/games/:id", async (req, res) => {
-    const game = await storage.getGame(Number(req.params.id));
-    if (!game) {
-      res.status(404).json({ message: "Game not found" });
-      return;
+    const gameId = parseInt(req.params.id);
+    if (isNaN(gameId)) {
+      return res.status(400).json({ message: "Invalid game ID" });
     }
-    res.json(game);
+
+    const game = await storage.getGame(gameId);
+    if (!game) {
+      return res.status(404).json({ message: "Game not found" });
+    }
+
+    return res.json(game);
   });
 
   app.post("/api/auth/register", async (req, res) => {
@@ -71,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/profile", async (req, res) => {
     // Extract username from headers if available
     const username = req.headers['x-username'] as string;
-    
+
     let user;
     if (username) {
       user = await storage.getUserByUsername(username);
@@ -79,12 +84,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fallback to userId 1 for testing purposes
       user = await storage.getUser(1);
     }
-    
+
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    
+
     // Remove password from response
     const { password, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
@@ -93,16 +98,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/bookings", async (req, res) => {
     // Extract username from headers if available
     const username = req.headers['x-username'] as string;
-    
+
     let userId = 1; // Default for testing
-    
+
     if (username) {
       const user = await storage.getUserByUsername(username);
       if (user) {
         userId = user.id;
       }
     }
-    
+
     const bookings = await storage.getUserBookings(userId);
     res.json(bookings);
   });

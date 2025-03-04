@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
@@ -48,10 +48,21 @@ export function BookingCalendar() {
   const [gameId, setGameId] = useState<string>();
   const [isBooking, setIsBooking] = useState(false);
   const { toast } = useToast();
-
+  
+  // Get gameId from URL if present
+  const params = new URLSearchParams(window.location.search);
+  const urlGameId = params.get('gameId');
+  
   const { data: games } = useQuery<Game[]>({
     queryKey: ["/api/games"],
   });
+  
+  // Set the gameId from URL when component mounts or games data loads
+  useEffect(() => {
+    if (urlGameId && games?.some(game => game.id === parseInt(urlGameId))) {
+      setGameId(urlGameId);
+    }
+  }, [urlGameId, games]);
 
   const handleBook = async () => {
     if (!date || !timeSlot || !location || !gameId) {

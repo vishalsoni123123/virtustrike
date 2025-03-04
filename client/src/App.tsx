@@ -4,6 +4,7 @@ import { Route, Switch } from "wouter";
 import Nav from "./components/nav";
 import Home from "./pages/home";
 import Games from "./pages/games";
+import GameDetail from "./pages/game-detail"; // Added import for GameDetail
 import Booking from "./pages/booking";
 import Profile from "./pages/profile";
 import Auth from "./pages/auth";
@@ -38,9 +39,10 @@ export default function App() {
             <Switch>
               <Route path="/" component={Home} />
               <Route path="/games" component={Games} />
+              <Route path="/games/:id" component={GameDetail} /> {/* Added route for game details */}
               <Route path="/booking" component={Booking} />
-              <Route path="/profile" component={Profile} />
               <Route path="/auth" component={Auth} />
+              <Route path="/profile" component={Profile} />
             </Switch>
           </main>
           <footer className="border-t py-6 text-center text-sm text-muted-foreground">
