@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { z } from "zod";
@@ -8,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,12 +25,12 @@ export default function Auth() {
   const { login, register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
-  
+
   const [registerData, setRegisterData] = useState({
     username: "",
     password: "",
@@ -43,14 +41,16 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     try {
       userSchema.parse(loginData);
       setIsLoading(true);
-      
+
       const success = await login(loginData.username, loginData.password);
-      
+
       if (success) {
+        // Store username in localStorage after successful login
+        localStorage.setItem('username', loginData.username);
         setLocation("/profile");
       } else {
         setError("Invalid username or password");
@@ -69,18 +69,18 @@ export default function Auth() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     try {
       userSchema.parse(registerData);
       setIsLoading(true);
-      
+
       const success = await register(
         registerData.username, 
         registerData.password,
         registerData.email,
         registerData.phoneNumber
       );
-      
+
       if (success) {
         setLocation("/profile");
       } else {
@@ -104,7 +104,7 @@ export default function Auth() {
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="register">Register</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="login">
           <Card>
             <CardHeader>
@@ -148,7 +148,7 @@ export default function Auth() {
             </form>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="register">
           <Card>
             <CardHeader>
