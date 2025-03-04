@@ -1,5 +1,3 @@
-import { MySQLStorage } from "./mysql-storage";
-import { MongoDBStorage } from "./mongo-storage";
 import { users, games, bookings, type User, type InsertUser, type Game, type InsertGame, type Booking, type InsertBooking, INITIAL_GAMES } from "@shared/schema";
 
 export interface IStorage {
@@ -12,7 +10,6 @@ export interface IStorage {
   // Games
   getGames(): Promise<Game[]>;
   getGame(id: number): Promise<Game | undefined>;
-  createGame(game: InsertGame): Promise<Game>; // Added createGame method
 
   // Bookings
   createBooking(booking: InsertBooking): Promise<Booking>;
@@ -22,33 +19,105 @@ export interface IStorage {
   updateBookingStatus(id: number, status: string): Promise<void>;
 }
 
-// Select which storage to use
-const USE_MONGODB = process.env.USE_MONGODB === "true";
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private games: Map<number, Game>;
+  private bookings: Map<number, Booking>;
+  private currentUserId: number;
+  private currentBookingId: number;
 
-// Create storage instance
-const mongoStorage = new MongoDBStorage();
-const mysqlStorage = new MySQLStorage();
+  constructor() {
+    this.users = new Map();
+    this.games = new Map();
+    this.bookings = new Map();
+    this.currentUserId = 1;
+    this.currentBookingId = 1;
 
-// Export the selected storage
-export const storage = USE_MONGODB ? mongoStorage : mysqlStorage;
+    // Initialize games
+    INITIAL_GAMES.forEach((game, index) => {
+      this.games.set(index + 1, { ...game, id: index + 1 });
+    });
+  }
 
-// Initialize database with sample data
-export async function initializeDatabase() {
-  try {
-    // Check if we already have games
-    const existingGames = await storage.getGames();
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
 
-    if (!existingGames || existingGames.length === 0) {
-      console.log("Initializing database with sample data...");
+  async getUserProfile(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
 
-      // Add sample games
-      for (const game of INITIAL_GAMES) {
-        await storage.createGame(game);
-      }
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
+  }
 
-      console.log("Sample data loaded successfully");
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.currentUserId++;
+    const user: User = { 
+      ...insertUser, 
+      id,
+      createdAt: new Date() 
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async getGames(): Promise<Game[]> {
+    return Array.from(this.games.values());
+  }
+
+  async getGame(id: number): Promise<Game | undefined> {
+    return this.games.get(id);
+  }
+
+  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
+    const id = this.currentBookingId++;
+    const booking: Booking = { 
+      ...insertBooking, 
+      id,
+      status: 'pending',
+      createdAt: new Date()
+    };
+    this.bookings.set(id, booking);
+    return booking;
+  }
+
+  async getBookingsByDate(date: Date): Promise<Booking[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return Array.from(this.bookings.values()).filter(
+      (booking) => booking.date >= startOfDay && booking.date <= endOfDay
+    );
+  }
+
+  async getUserBookings(userId: number): Promise<Booking[]> {
+    return Array.from(this.bookings.values()).filter(
+      (booking) => booking.userId === userId
+    );
+  }
+
+  async updateBookingPayment(id: number, isPaid: boolean): Promise<void> {
+    const booking = this.bookings.get(id);
+    if (booking) {
+      this.bookings.set(id, { 
+        ...booking, 
+        isPaid,
+        status: isPaid ? 'confirmed' : booking.status 
+      });
     }
-  } catch (error) {
-    console.error("Error initializing database:", error);
+  }
+
+  async updateBookingStatus(id: number, status: string): Promise<void> {
+    const booking = this.bookings.get(id);
+    if (booking) {
+      this.bookings.set(id, { ...booking, status });
+    }
   }
 }
+
+export const storage = new MemStorage();
