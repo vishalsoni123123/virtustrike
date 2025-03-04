@@ -1,25 +1,40 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Booking, User } from "@shared/schema";
+
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import type { Booking } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Profile() {
-  const { data: user, isLoading: userLoading } = useQuery<User>({
-    queryKey: ["/api/user/profile"],
-  });
-
-  const { data: bookings, isLoading: bookingsLoading } = useQuery<Booking[]>({
+  const [, setLocation] = useLocation();
+  const { user, isLoading } = useAuth();
+  
+  const { data: bookings } = useQuery<Booking[]>({
     queryKey: ["/api/user/bookings"],
+    enabled: !!user,
   });
 
-  if (userLoading || bookingsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  useEffect(() => {
+    // Redirect to auth page if not logged in
+    if (!isLoading && !user) {
+      setLocation("/auth");
+    }
+  }, [user, isLoading, setLocation]);
+
+  if (isLoading) {
+    return <div className="text-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return null; // Will redirect in useEffect
   }
 
   return (
@@ -27,20 +42,29 @@ export default function Profile() {
       <div className="text-center">
         <h1 className="text-4xl font-bold">My Profile</h1>
         <p className="mt-2 text-muted-foreground">
-          Manage your account and view your bookings
+          Manage your account and bookings
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>Account Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <p><span className="font-medium">Username:</span> {user?.username}</p>
-              <p><span className="font-medium">Email:</span> {user?.email}</p>
-              <p><span className="font-medium">Phone:</span> {user?.phoneNumber}</p>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-muted-foreground">Username</div>
+                <div>{user.username}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Email</div>
+                <div>{user.email}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Phone</div>
+                <div>{user.phoneNumber}</div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -51,10 +75,10 @@ export default function Profile() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {bookings?.length === 0 ? (
+              {!bookings || bookings.length === 0 ? (
                 <p className="text-muted-foreground">No bookings yet</p>
               ) : (
-                bookings?.map((booking) => (
+                bookings.map((booking) => (
                   <div key={booking.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div>
@@ -76,11 +100,6 @@ export default function Profile() {
                         </span>
                       </div>
                     </div>
-                    {!booking.isPaid && (
-                      <Button className="mt-4 w-full" variant="outline">
-                        Complete Payment
-                      </Button>
-                    )}
                   </div>
                 ))
               )}

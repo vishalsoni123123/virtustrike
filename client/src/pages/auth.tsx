@@ -1,210 +1,218 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { insertUserSchema } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/auth-context";
 
-const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+const userSchema = z.object({
+  username: z.string().min(3).max(50),
+  password: z.string().min(1),
+  email: z.string().email().optional(),
+  phoneNumber: z.string().min(10).optional(),
 });
-
-const registerSchema = insertUserSchema.extend({
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type LoginSchema = z.infer<typeof loginSchema>;
-type RegisterSchema = z.infer<typeof registerSchema>;
 
 export default function Auth() {
-  const { toast } = useToast();
-  const loginForm = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
+  const [, setLocation] = useLocation();
+  const { login, register } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [loginData, setLoginData] = useState({
+    username: "",
+    password: "",
+  });
+  
+  const [registerData, setRegisterData] = useState({
+    username: "",
+    password: "",
+    email: "",
+    phoneNumber: "",
   });
 
-  const registerForm = useForm<RegisterSchema>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      phoneNumber: "",
-    },
-  });
-
-  async function onLogin(data: LoginSchema) {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    
     try {
-      await apiRequest("POST", "/api/auth/login", data);
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Invalid credentials",
-      });
+      userSchema.parse(loginData);
+      setIsLoading(true);
+      
+      const success = await login(loginData.username, loginData.password);
+      
+      if (success) {
+        setLocation("/profile");
+      } else {
+        setError("Invalid username or password");
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setError("Please check your input fields");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  async function onRegister(data: RegisterSchema) {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    
     try {
-      await apiRequest("POST", "/api/auth/register", {
-        username: data.username,
-        email: data.email,
-        password: data.password,
-        phoneNumber: data.phoneNumber,
-      });
-      toast({
-        title: "Success",
-        description: "Account created successfully",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create account",
-      });
+      userSchema.parse(registerData);
+      setIsLoading(true);
+      
+      const success = await register(
+        registerData.username, 
+        registerData.password,
+        registerData.email,
+        registerData.phoneNumber
+      );
+      
+      if (success) {
+        setLocation("/profile");
+      } else {
+        setError("Registration failed. Username may be taken.");
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setError("Please check your input fields");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="mx-auto max-w-md">
-      <Card>
-        <CardHeader>
-          <CardTitle>Welcome to VirtuStrike</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="login">
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+      <Tabs defaultValue="login">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="login">Login</TabsTrigger>
+          <TabsTrigger value="register">Register</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="login">
+          <Card>
+            <CardHeader>
+              <CardTitle>Login</CardTitle>
+              <CardDescription>
+                Enter your details to access your account
+              </CardDescription>
+            </CardHeader>
+            <form onSubmit={handleLogin}>
+              <CardContent className="space-y-4">
+                {error && (
+                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+                    {error}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Username</label>
+                  <Input 
+                    type="text"
+                    value={loginData.username}
+                    onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                    placeholder="username"
+                    required
                   />
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Password</label>
+                  <Input 
+                    type="password"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                    required
                   />
-                  <Button type="submit" className="w-full">Sign In</Button>
-                </form>
-              </Form>
-            </TabsContent>
-
-            <TabsContent value="register">
-              <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="register">
+          <Card>
+            <CardHeader>
+              <CardTitle>Register</CardTitle>
+              <CardDescription>
+                Create an account to book gaming sessions
+              </CardDescription>
+            </CardHeader>
+            <form onSubmit={handleRegister}>
+              <CardContent className="space-y-4">
+                {error && (
+                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+                    {error}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Username</label>
+                  <Input 
+                    type="text"
+                    value={registerData.username}
+                    onChange={(e) => setRegisterData({...registerData, username: e.target.value})}
+                    placeholder="username"
+                    required
                   />
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Password</label>
+                  <Input 
+                    type="password"
+                    value={registerData.password}
+                    onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
+                    required
                   />
-                  <FormField
-                    control={registerForm.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input type="tel" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <Input 
+                    type="email"
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
+                    placeholder="your@email.com"
+                    required
                   />
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone Number</label>
+                  <Input 
+                    type="tel"
+                    value={registerData.phoneNumber}
+                    onChange={(e) => setRegisterData({...registerData, phoneNumber: e.target.value})}
+                    placeholder="9889998899"
+                    required
                   />
-                  <FormField
-                    control={registerForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full">Create Account</Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Register"}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

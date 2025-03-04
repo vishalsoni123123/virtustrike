@@ -1,43 +1,42 @@
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import type { User } from "@shared/schema";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Nav() {
-  const [location] = useLocation();
-  const { data: user } = useQuery<User>({
-    queryKey: ["/api/user/profile"],
-  });
+  const { user, logout } = useAuth();
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4">
+    <nav className="flex items-center justify-between py-4">
+      <div className="flex items-center gap-6">
         <Link href="/">
-          <a className="text-2xl font-bold text-primary">VirtuStrike</a>
+          <a className="text-xl font-bold">VirtuStrike</a>
         </Link>
-        <div className="ml-auto flex gap-4">
+        <div className="hidden items-center gap-4 md:flex">
           <Link href="/games">
-            <Button variant={location === "/games" ? "default" : "ghost"}>
+            <a className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Games
-            </Button>
+            </a>
           </Link>
           <Link href="/booking">
-            <Button variant={location === "/booking" ? "default" : "ghost"}>
+            <a className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Book Now
-            </Button>
+            </a>
           </Link>
-          {user ? (
-            <Link href="/profile">
-              <Button variant={location === "/profile" ? "default" : "ghost"}>
-                My Profile
-              </Button>
-            </Link>
-          ) : (
-            <Link href="/auth">
-              <Button variant="secondary">Sign In</Button>
-            </Link>
-          )}
         </div>
+      </div>
+      <div className="flex items-center gap-4">
+        {user ? (
+          <>
+            <Link href="/profile">
+              <Button variant="outline">Profile</Button>
+            </Link>
+            <Button variant="ghost" onClick={logout}>Logout</Button>
+          </>
+        ) : (
+          <Link href="/auth">
+            <Button variant="outline">Sign In</Button>
+          </Link>
+        )}
       </div>
     </nav>
   );
