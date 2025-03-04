@@ -10,6 +10,7 @@ import Booking from "@/pages/booking";
 import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
+import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
@@ -18,7 +19,7 @@ function Router() {
       <Route path="/games" component={Games} />
       <Route path="/booking" component={Booking} />
       <Route path="/auth" component={Auth} />
-      <Route path="/profile" component={Profile} />
+      <ProtectedRoute path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,8 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import type { User } from "@shared/schema";
 
 export default function Nav() {
   const [location] = useLocation();
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user/profile"],
+  });
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -21,14 +26,17 @@ export default function Nav() {
               Book Now
             </Button>
           </Link>
-          <Link href="/profile">
-            <Button variant={location === "/profile" ? "default" : "ghost"}>
-              My Profile
-            </Button>
-          </Link>
-          <Link href="/auth">
-            <Button variant="secondary">Sign In</Button>
-          </Link>
+          {user ? (
+            <Link href="/profile">
+              <Button variant={location === "/profile" ? "default" : "ghost"}>
+                My Profile
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/auth">
+              <Button variant="secondary">Sign In</Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>
