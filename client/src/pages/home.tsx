@@ -9,8 +9,12 @@ export default function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url(attached_assets/game1.jpg)",
+            backgroundImage: `url(${import.meta.env.BASE_URL}attached_assets/game1.jpg)`,
             filter: "brightness(0.3)",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            width: '100%',
+            height: '100%'
           }}
         />
         <div className="relative mx-auto max-w-2xl">
@@ -64,9 +68,9 @@ export default function Home() {
           </div>
           <div className="relative aspect-video rounded-lg overflow-hidden">
             <img
-              src="attached_assets/game2.jpg"
+              src={`${import.meta.env.BASE_URL}attached_assets/game2.jpg`}
               alt="VR Gaming Experience"
-              className="object-cover w-full h-full"
+              className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-300"
             />
           </div>
         </div>
