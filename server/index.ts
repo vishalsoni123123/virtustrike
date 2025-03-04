@@ -4,6 +4,10 @@ import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
 import { MySQLStorage } from "./mysql-storage";
 import path from "path";
+import { connectToMongoDB } from "./mongo-db"; // Added MongoDB connection
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // Determine if using MySQL or in-memory storage
 const useMySQL = process.env.USE_MYSQL === "true";
@@ -18,10 +22,10 @@ if (useMySQL) {
     connectionLimit: 10,
     queueLimit: 0
   });
-  
+
   // Initialize MySQL tables
   mysqlStorage.initialize().catch(console.error);
-  
+
   // Replace in-memory storage with MySQL implementation
   Object.assign(storage, mysqlStorage);
 }
@@ -63,6 +67,12 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Connect to MongoDB if enabled
+  if (process.env.USE_MONGODB === "true") {
+    await connectToMongoDB();
+  }
+
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -100,6 +110,6 @@ app.use((req, res, next) => {
       }
     });
   };
-  
+
   tryListen();
 })();

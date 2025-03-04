@@ -20,7 +20,7 @@ export function GameCard({ game }: GameCardProps) {
     if (!user) {
       setLocation("/auth");
     } else {
-      setLocation("/booking");
+      setLocation(`/booking?gameId=${game.id}`);
     }
   };
 

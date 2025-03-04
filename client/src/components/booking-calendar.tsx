@@ -41,11 +41,15 @@ const TIME_SLOTS = [
 ];
 
 export function BookingCalendar() {
+  // Get current location to parse URL parameters
+  const [location, params] = useLocation();
+  const queryParams = new URLSearchParams(params);
+  
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState<string>();
   const [players, setPlayers] = useState<string>("2");
-  const [location, setLocation] = useState<string>();
-  const [gameId, setGameId] = useState<string>();
+  const [selectedLocation, setSelectedLocation] = useState<string>();
+  const [gameId, setGameId] = useState<string>(queryParams.get("gameId") || "");
   const [isBooking, setIsBooking] = useState(false);
   const { toast } = useToast();
 
@@ -54,7 +58,7 @@ export function BookingCalendar() {
   });
 
   const handleBook = async () => {
-    if (!date || !timeSlot || !location || !gameId) {
+    if (!date || !timeSlot || !selectedLocation || !gameId) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -189,7 +193,7 @@ export function BookingCalendar() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Location</label>
-                <Select value={location} onValueChange={setLocation}>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
