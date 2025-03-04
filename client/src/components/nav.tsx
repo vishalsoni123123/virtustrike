@@ -21,6 +21,11 @@ export default function Nav() {
               Book Now
             </Button>
           </Link>
+          <Link href="/profile">
+            <Button variant={location === "/profile" ? "default" : "ghost"}>
+              My Profile
+            </Button>
+          </Link>
           <Link href="/auth">
             <Button variant="secondary">Sign In</Button>
           </Link>

@@ -2,6 +2,15 @@ import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const games = pgTable("games", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -19,13 +28,9 @@ export const bookings = pgTable("bookings", {
   teamSize: integer("team_size").notNull(),
   totalAmount: integer("total_amount").notNull(),
   isPaid: boolean("is_paid").default(false),
-});
-
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull(),
+  location: text("location").notNull(),
+  status: text("status").notNull().default('pending'),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertGameSchema = createInsertSchema(games);
@@ -34,6 +39,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   email: true,
+  phoneNumber: true,
 });
 
 export type Game = typeof games.$inferSelect;

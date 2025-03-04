@@ -42,6 +42,7 @@ export default function Auth() {
       email: "",
       password: "",
       confirmPassword: "",
+      phoneNumber: "",
     },
   });
 
@@ -67,6 +68,7 @@ export default function Auth() {
         username: data.username,
         email: data.email,
         password: data.password,
+        phoneNumber: data.phoneNumber,
       });
       toast({
         title: "Success",
@@ -152,6 +154,19 @@ export default function Auth() {
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input type="tel" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
