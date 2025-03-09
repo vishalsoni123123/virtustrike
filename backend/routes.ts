@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertBookingSchema } from "@backend/schema";
+import { insertUserSchema, insertBookingSchema } from "./schema";
 import { z } from "zod";
 import sgMail from '@sendgrid/mail';
 
