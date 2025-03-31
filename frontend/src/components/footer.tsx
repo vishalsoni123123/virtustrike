@@ -15,22 +15,22 @@ export function Footer() {
           <div className="space-y-2">
             <div className="flex items-center text-sm">
               <MapPin className="h-4 w-4 mr-2" />
-              <span>123 Gaming Street, Tech City</span>
+              <span>Near, Scheme 78, Vijay Nagar, Indore</span>
             </div>
             <div className="flex items-center text-sm">
               <Phone className="h-4 w-4 mr-2" />
-              <span>+91 98765 43210</span>
+              <span>+91 86024 47245</span>
             </div>
             <div className="flex items-center text-sm">
               <Mail className="h-4 w-4 mr-2" />
-              <span>info@virtustrike.com</span>
+              <span>vishal@virtustrike.com</span>
             </div>
           </div>
         </div>
         <div>
           <h3 className="text-lg font-bold mb-4">Hours</h3>
-          <p className="text-sm">Monday - Friday: 10AM - 10PM</p>
-          <p className="text-sm">Saturday - Sunday: 9AM - 11PM</p>
+          <p className="text-sm">Monday - Friday: 10AM - 11PM</p>
+          <p className="text-sm">Saturday - Sunday: 9AM - 11:30PM</p>
         </div>
       </div>
       <div className="text-center text-sm text-muted-foreground mt-8">
